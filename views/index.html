@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>关注网</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+    <script src="https://cdn.bootcss.com/springy/2.8.0/springy.js"></script>
+    <script src="https://cdn.bootcss.com/springy/2.8.0/springyui.min.js"></script>
+</head>
+<body>
+<canvas id="springydemo" width="2080px" height="2080px" style="width:2080px;height:2080px;">
+
+
+</canvas>
+</body>
+
+
+<script>
+    var graph = new Springy.Graph();
+
+    /*   var dennis = graph.newNode({
+            label: 'Dennis',
+            ondoubleclick: function () {
+            }
+        });*/
+
+
+    /*    graph.newEdge(dennis, michael, {color: '#00A0B0'});
+        graph.newEdge(michael, dennis, {color: '#6A4A3C'});
+        graph.newEdge(michael, jessica, {color: '#CC333F'});
+        graph.newEdge(jessica, barbara, {color: '#EB6841'});
+        graph.newEdge(michael, timothy, {color: '#EDC951'});
+        graph.newEdge(franklin, monty, {color: '#7DBE3C'});
+        graph.newEdge(dennis, monty, {color: '#000000'});
+        graph.newEdge(monty, james, {color: '#00A0B0'});
+        graph.newEdge(barbara, timothy, {color: '#6A4A3C'});
+        graph.newEdge(dennis, bianca, {color: '#CC333F'});
+        graph.newEdge(bianca, monty, {color: '#EB6841'});*/
+
+
+    $(() => {
+        let springy = window.springy = $('#springydemo').springy({
+            graph: graph,
+            nodeSelected: function (node) {
+                console.log('Node selected: ' + JSON.stringify(node));
+            }
+        });
+    });
+
+    let array = [];
+    array.push({id: "4548018", name: "测试人", parent: null})
+
+    function __xx(id, name, parent) {
+        for (let val in graph.nodeSet){
+            if (graph.nodeSet[val].data.mid==id){
+                graph.newEdge(parent,graph.nodeSet[val],{color: '#7DBE3C'});
+                console.log(`重复  ${parent.data.label} ----->${name}`)
+                return;
+            }
+        }
+
+        axios.get(`/attention/${id}`, {})
+            .then(function (response) {
+                let nodes = response.data.data;
+
+                    let sub = graph.newNode({label: `${name}-${nodes.total}`, mid: id});
+                    if (parent) {
+                        graph.newEdge(parent,sub,{color: '#00A0B0'});
+                        console.log(`${parent.data.label}----->${sub.data.label}`)
+                    }
+                    nodes.list.forEach(item => {
+                        array.push({id: item.mid, name: item.uname, parent: sub})
+                    })
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+
+
+    setInterval(() => {
+            let pop = array.shift();
+            if (pop){
+                __xx(pop.id, pop.name, pop.parent)
+            }
+
+        },1500)
+
+</script>
+</html>
